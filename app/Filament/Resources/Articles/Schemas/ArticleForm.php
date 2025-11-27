@@ -1,0 +1,62 @@
+<?php
+
+namespace App\Filament\Resources\Articles\Schemas;
+
+use Filament\Schemas\Schema;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\RichEditor;
+use Filament\Schemas\Components\Utilities\Set;
+use Filament\Forms\Components\Textarea;
+use Illuminate\Support\Str;
+
+class ArticleForm
+{
+    public static function configure(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                TextInput::make('title') 
+                    ->label('Judul_Artikel')
+                    ->required()
+                    ->live(onBlur: true)
+                    ->afterStateUpdated(function (Set $set, ?string $state): void {
+                        $set('slug', Str::slug((string) $state));
+                }),
+                TextInput::make('slug')
+                    ->required()
+                    ->rules(['alpha_dash'])
+                    ->unique(ignoreRecord: true),
+                RichEditor::make('content')
+                    ->label('Konten_Artikel')
+                    ->columnSpanFull(),
+                Select::make('status')
+                    ->label('Status_Artikel')
+                    ->options(['draft' => 'Draft', 'published' => 'Published'])
+                    ->default('draft'),
+                FileUpload::make('featured_image')
+                    ->label('Gambar_Utama')
+                    ->image()
+                    ->directory('articles')
+                    ->visibility('public'),
+                TextInput::make('meta_title')
+                    ->label('Judul_SEO')
+                    ->required()
+                    ->maxLength(150),
+                TextInput::make('meta_description')
+                    ->label('Deskripsi_SEO')
+                    ->required()
+                    ->maxLength(255),
+                TextInput::make('meta_keywords')
+                    ->label('Kata_Kunci_SEO')
+                    ->required()
+                    ->maxLength(255),
+                DateTimePicker::make('published_at')
+                    ->label('Tanggal Terbit')
+                    ->native(false)
+                    ->seconds(false),
+            ]);
+    }
+}
